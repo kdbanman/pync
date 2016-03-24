@@ -46,7 +46,7 @@ Physics({maxIPF: 1000}, function (clientWorld) {
     var targetState = {angular: {}, old: {angular: {}}};
 
 
-    var targetSim = Physics({maxIPF: 1000});
+    var targetSim = Physics({maxIPF: 10000});
     var targetBall = Physics.body('circle', {
         radius: 80
     });
@@ -168,27 +168,35 @@ Physics({maxIPF: 1000}, function (clientWorld) {
 
 
         var sendClient = function (state, time) {
+            // TODO: COPY state to a thing that won't close before
+            // the timeout callback is called
+            //
+            var targetState = {old: {angular: {}}, angular: {}};
+
+            targetState.pos = state.pos.clone();
+            targetState.old.pos = state.old.pos.clone();
+
+            targetState.vel = state.vel.clone();
+            targetState.old.vel = state.old.vel.clone();
+
+            targetState.acc = state.acc.clone();
+            targetState.old.acc = state.old.acc.clone();
+
+            targetState.angular.pos = state.angular.pos;
+            targetState.old.angular.pos = state.old.angular.pos;
+
+            targetState.angular.vel = state.angular.vel;
+            targetState.old.angular.vel = state.old.angular.vel;
+
+            targetState.angular.acc = state.angular.acc;
+            targetState.old.angular.acc = state.old.angular.acc;
+
             setTimeout(function () {
                 // get the sim's last step time up to the state's time
-                targetSim.step(time);
+                targetSim._time = time;
 
-                targetBall.state.pos = state.pos.clone();
-                targetBall.state.old.pos = state.old.pos.clone();
+                targetBall.state = targetState;
 
-                targetBall.state.vel = state.vel.clone();
-                targetBall.state.old.vel = state.old.vel.clone();
-
-                targetBall.state.acc = state.acc.clone();
-                targetBall.state.old.acc = state.old.acc.clone();
-
-                targetBall.state.angular.pos = state.angular.pos;
-                targetBall.state.old.angular.pos = state.old.angular.pos;
-
-                targetBall.state.angular.vel = state.angular.vel;
-                targetBall.state.old.angular.vel = state.old.angular.vel;
-
-                targetBall.state.angular.acc = state.angular.acc;
-                targetBall.state.old.angular.acc = state.old.angular.acc;
             }, latency);
         };
 
